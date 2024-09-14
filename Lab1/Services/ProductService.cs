@@ -7,10 +7,8 @@ public class ProductService : IProductService
 {
     private readonly List<Product> _products = new();
     
-    public IReadOnlyCollection<Product> GetList()
-    {
-        return _products;
-    }
+    public IReadOnlyCollection<Product> GetList() => 
+        _products;
 
     public Product? Get(Guid guid) => 
         _products.FirstOrDefault(x => x.Id == guid);
