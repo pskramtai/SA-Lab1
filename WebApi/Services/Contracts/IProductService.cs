@@ -2,13 +2,13 @@
 
 public interface IProductService
 {
-    IReadOnlyCollection<Product> GetProductList();
+    Task<IReadOnlyCollection<ProductDto>> GetProductList();
     
-    Product? GetProduct(Guid id);
+    Task<ProductDto?> GetProduct(Guid id);
     
-    Product AddProduct(Product product);
+    Task<ProductDto> AddProduct(ProductDto productDto);
     
-    Product? UpdateProduct(Product product);
+    Task<ProductDto> UpdateProduct(ProductDto productDto);
     
-    void DeleteProduct(Guid id);
+    Task DeleteProduct(ProductDto productDto);
 }

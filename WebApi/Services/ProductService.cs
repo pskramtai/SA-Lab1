@@ -1,48 +1,34 @@
-﻿using WebApi.Services.Contracts;
+﻿using WebApi.Persistence;
+using WebApi.Services.Contracts;
 
 namespace WebApi.Services;
 
-public class ProductService : IProductService
+public class ProductService(IProductRepository repository) : IProductService
 {
-    private readonly List<Product> _products = [];
-    
-    public IReadOnlyCollection<Product> GetProductList() => 
-        _products;
+    public async Task<IReadOnlyCollection<ProductDto>> GetProductList() => 
+        (await repository.GetAllAsync()).Select(x => x.ToDto()).ToList();
 
-    public Product? GetProduct(Guid id) => 
-        _products.FirstOrDefault(x => x.Id == id);
+    public async Task<ProductDto?> GetProduct(Guid id) =>
+        (await repository.GetByIdAsync(id))?.ToDto();
 
-    public Product AddProduct(Product product)
+    public async Task<ProductDto> AddProduct(ProductDto productDto)
     {
-        var newProduct = product with { Id = Guid.NewGuid() };
+        var productEntity = productDto.ToEntity();
         
-        _products.Add(newProduct);
+        var newProduct = await repository.AddAsync(productEntity);
 
-        return newProduct;
+        return newProduct.ToDto();
     }
 
-    public Product? UpdateProduct(Product product)
+    public async Task<ProductDto> UpdateProduct(ProductDto productDto)
     {
-        var productIndex = _products.FindIndex(x => x.Id == product.Id);
-
-        if (productIndex == -1)
-        {
-            return null;
-        }
+        var productEntity = productDto.ToEntity();
         
-        _products[productIndex] = product;
-            
-        return product;
+        var updatedProduct = await repository.UpdateAsync(productEntity);
 
+        return updatedProduct.ToDto();
     }
 
-    public void DeleteProduct(Guid id)
-    {
-        var product = _products.FirstOrDefault(x => x.Id == id);
-
-        if (product is not null)
-        { 
-            _products.Remove(product);
-        }
-    }
+    public async Task DeleteProduct(ProductDto productDto) => 
+        await repository.DeleteAsync(productDto.ToEntity());
 }

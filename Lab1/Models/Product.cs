@@ -11,11 +11,11 @@ public record Product
     string Name,
     
     [Required]
-    [Range(0, int.MaxValue, ErrorMessage = "Price must be a positive number.")]
+    [Range(0, int.MaxValue, ErrorMessage = "Price must be a non negative number.")]
     int Price,
     
     [Required]
-    [Range(0, int.MaxValue, ErrorMessage = "Quantity must be a positive number.")]
+    [Range(0, int.MaxValue, ErrorMessage = "Quantity must be a non negative number.")]
     int Quantity,
     
     [Required]
