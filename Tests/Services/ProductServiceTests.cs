@@ -2,10 +2,9 @@
 using FluentAssertions;
 using Lab1.Models;
 using Lab1.Services;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Xunit;
 
-namespace Tests;
+namespace Tests.Services;
 
 public class ProductServiceTests
     {
