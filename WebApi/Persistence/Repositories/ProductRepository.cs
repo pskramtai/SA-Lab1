@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using WebApi.Persistence.Entities;
 
-namespace WebApi.Persistence;
+namespace WebApi.Persistence.Repositories;
 
 public class ProductRepository(ProductDbContext context) : IProductRepository
 {

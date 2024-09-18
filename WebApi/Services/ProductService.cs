@@ -1,4 +1,4 @@
-﻿using WebApi.Persistence;
+﻿using WebApi.Persistence.Repositories;
 using WebApi.Services.Contracts;
 
 namespace WebApi.Services;

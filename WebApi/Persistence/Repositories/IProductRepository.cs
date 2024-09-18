@@ -1,6 +1,6 @@
 ﻿using WebApi.Persistence.Entities;
 
-namespace WebApi.Persistence;
+namespace WebApi.Persistence.Repositories;
 
 public interface IProductRepository
 {

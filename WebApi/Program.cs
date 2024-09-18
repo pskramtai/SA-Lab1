@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Persistence;
+using WebApi.Persistence.Repositories;
 using WebApi.Presentation;
 using WebApi.Presentation.Filters;
 using WebApi.Presentation.Validators;
@@ -36,6 +37,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.ConfigureExceptionHandling();
 
 app.UseHttpsRedirection();
 
