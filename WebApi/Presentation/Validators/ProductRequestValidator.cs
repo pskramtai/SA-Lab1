@@ -14,7 +14,7 @@ public class ProductRequestValidator : AbstractValidator<ProductRequest>
         
         RuleFor(x => x.Description)
             .Must(x => x.Length >= 3 && x.Length <= 100)
-            .WithMessage("The product name must be between 3 and 100 characters.");
+            .WithMessage("The product description must be between 3 and 100 characters.");
 
         RuleFor(x => x.Price)
             .Must(x => x >= 0)
