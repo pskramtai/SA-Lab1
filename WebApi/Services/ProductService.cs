@@ -11,7 +11,7 @@ public class ProductService(IProductRepository repository) : IProductService
     public async Task<ProductDto?> GetProduct(Guid id) =>
         (await repository.GetByIdAsync(id))?.ToDto();
 
-    public async Task<ProductDto> AddProduct(ProductDto productDto)
+    public async Task<ProductDto> CreateProduct(ProductDto productDto)
     {
         var productEntity = productDto.ToEntity();
         

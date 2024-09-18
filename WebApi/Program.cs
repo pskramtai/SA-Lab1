@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using WebApi.Persistence;
 using WebApi.Persistence.Repositories;
 using WebApi.Presentation;
+using WebApi.Presentation.Endpoints;
 using WebApi.Presentation.Filters;
 using WebApi.Presentation.Validators;
 using WebApi.Services;
@@ -42,6 +43,8 @@ app.ConfigureExceptionHandling();
 
 app.UseHttpsRedirection();
 
-app.RegisterRoutes();
+app.RegisterProductRoutes();
 
 app.Run();
+
+public partial class Program;

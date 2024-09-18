@@ -2,11 +2,11 @@
 using WebApi.Presentation.Models.Request;
 using WebApi.Services.Contracts;
 
-namespace WebApi.Presentation;
+namespace WebApi.Presentation.Endpoints;
 
-public static class RouteConfig
+public static class ProductEndpoints
 {
-    public static void RegisterRoutes(this WebApplication app)
+    public static void RegisterProductRoutes(this WebApplication app)
     {
         app.MapGet("/products", async (IProductService productService) =>
             {
@@ -30,7 +30,7 @@ public static class RouteConfig
 
         app.MapPost("/products", async (IProductService productService, ProductRequest product) =>
             {
-                var createdProduct = await productService.AddProduct(product.ToDto());
+                var createdProduct = await productService.CreateProduct(product.ToDto());
         
                 return createdProduct.ToResponse();
             })
@@ -46,8 +46,11 @@ public static class RouteConfig
                 {
                     return Results.NotFound();
                 }
-        
-                var updatedProduct = await productService.UpdateProduct(product.ToDto());
+                
+                var updatedProduct = await productService.UpdateProduct
+                (
+                    product.ToDto() with { Id = existingProduct.Id }
+                );
 
                 return Results.Ok(updatedProduct.ToResponse());
             })
