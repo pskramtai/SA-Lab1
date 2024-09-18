@@ -11,18 +11,20 @@ public static class MapperExtensions
         (
             Id: null,
             Name: product.Name,
+            Description: product.Description,
             Price: product.Price,
             Quantity: product.Quantity,
             ProductCategory: product.ProductCategory
         );
 
-    public static ProductResponse ToResponse(this ProductDto productDto) =>
+    public static ProductResponse ToResponse(this ProductDto product) =>
         new
         (
-            Id: productDto.Id!.Value,
-            Price: productDto.Price,
-            Name: productDto.Name,
-            Quantity: productDto.Quantity,
-            ProductCategory: productDto.ProductCategory
+            Id: product.Id!.Value,
+            Name: product.Name,
+            Description: product.Description,
+            Price: product.Price,
+            Quantity: product.Quantity,
+            ProductCategory: product.ProductCategory
         );
 }

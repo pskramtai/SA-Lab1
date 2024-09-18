@@ -1,16 +1,14 @@
-﻿using Lab1.Models;
-
-namespace Lab1.Services.Contracts;
+﻿namespace Lab1.Services.Contracts;
 
 public interface IProductService
 {
-    IReadOnlyCollection<Product> GetList();
+    Task<IReadOnlyCollection<ProductDto>> GetListAsync();
 
-    Product? Get(Guid guid);
+    Task<ProductDto?> GetAsync(Guid guid);
     
-    void Add(Product product);
+    Task<ProductDto> AddAsync(ProductDto product);
     
-    void Update(Product product);
+    Task<ProductDto?> UpdateAsync(ProductDto product);
     
-    void Remove(Guid guid);
+    Task DeleteAsync(Guid guid);
 }

@@ -1,4 +1,5 @@
-﻿using Lab1.Models;
+﻿using Lab1.Extensions;
+using Lab1.Models;
 using Lab1.Services.Contracts;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,19 +8,22 @@ namespace Lab1.Controllers;
 [Route("Products")]
 public class ProductController(IProductService productService) : Controller
 {
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
-        var products = productService.GetList();
+        var products = (await productService
+            .GetListAsync())
+            .Select(x => x.ToModel())
+            .ToList();
         
         return View(products);
     }
     
     [HttpGet("Edit/{id:guid}")]
-    public IActionResult Edit(Guid id)
+    public async Task<IActionResult> Edit(Guid id)
     {
-        var product = productService.Get(id);
+        var product = await productService.GetAsync(id);
 
-        return product is not null ? View(product) : NotFound();
+        return product is not null ? View(product.ToModel()) : NotFound();
     }
     
     [HttpGet("Add")]
@@ -29,36 +33,41 @@ public class ProductController(IProductService productService) : Controller
     }
     
     [HttpPost("Add")]
-    public IActionResult Add(Product product)
+    public async Task<IActionResult> Add(Product product)
     {
         if (!ModelState.IsValid)
         {
             return View(product);
         }
         
-        var newProduct = product with { Id = Guid.NewGuid() };
-        productService.Add(newProduct); 
+        var newProduct = await productService.AddAsync(product.ToProductDto()); 
             
         return RedirectToAction("Edit", new { id = newProduct.Id });
     }
     
     [HttpPost("Update")]
-    public IActionResult Update(Product product)
+    public async Task<IActionResult> Update(Product product)
     {
         if (!ModelState.IsValid)
         {
             return View("Edit", product);
         }
         
-        productService.Update(product);
+        var updatedProduct = await productService.UpdateAsync(product.ToProductDto());
         
-        return RedirectToAction("Edit", new { id = product.Id });
+        if (updatedProduct is null)
+        {
+            TempData["ErrorMessage"] = "Product update failed.";
+            return RedirectToAction("Error", "Home");
+        }
+        
+        return RedirectToAction("Edit", new { id = updatedProduct.Id });
     }
     
     [HttpPost("Remove")]
-    public IActionResult Remove(Guid guid)
+    public async Task<IActionResult> Remove(Guid guid)
     {
-        productService.Remove(guid);
+        await productService.DeleteAsync(guid);
         
         return RedirectToAction("Index");
     }

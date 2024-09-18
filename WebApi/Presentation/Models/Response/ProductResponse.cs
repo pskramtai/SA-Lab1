@@ -6,6 +6,7 @@ public record ProductResponse
 (
     Guid Id,
     string Name,
+    string Description,
     int Price,
     int Quantity,
     ProductCategory ProductCategory

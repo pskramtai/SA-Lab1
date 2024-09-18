@@ -1,13 +1,38 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Lab1.Services;
+using Lab1.Services.Clients;
 using Lab1.Services.Contracts;
+using Refit;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services
-    .AddSingleton<IProductService, ProductService>()
+    .AddScoped<IProductService, ProductService>()
     .AddControllersWithViews();
 
+builder.Services.AddRefitClient<IProductApiClient>(x =>
+    {
+        return new RefitSettings
+        {
+            ContentSerializer = new SystemTextJsonContentSerializer(GetSerializerOptions()),
+
+        };
+
+        JsonSerializerOptions GetSerializerOptions()
+        {
+            var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+
+            jsonOptions.Converters.Add(new JsonStringEnumConverter());
+
+            return jsonOptions;
+        }
+    })
+    .ConfigureHttpClient(client =>
+    {
+        client.BaseAddress = new Uri(builder.Configuration["ProductApiBaseUrl"]!);
+    });
+    
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

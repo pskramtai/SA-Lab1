@@ -5,23 +5,25 @@ namespace WebApi.Services;
 
 public static class MapperExtensions
 {
-    public static ProductEntity ToEntity(this ProductDto productDto) =>
+    public static ProductEntity ToEntity(this ProductDto product) =>
         new
         (
-            Id: productDto.Id,
-            Name: productDto.Name,
-            Price: productDto.Price,
-            Quantity: productDto.Quantity,
-            ProductCategory: productDto.ProductCategory
+            Id: product.Id,
+            Name: product.Name,
+            Description: product.Description,
+            Price: product.Price,
+            Quantity: product.Quantity,
+            ProductCategory: product.ProductCategory
         );
 
-    public static ProductDto ToDto(this ProductEntity productEntity) =>
+    public static ProductDto ToDto(this ProductEntity product) =>
         new
         (
-            Id: productEntity.Id,
-            Price: productEntity.Price,
-            Name: productEntity.Name,
-            Quantity: productEntity.Quantity,
-            ProductCategory: productEntity.ProductCategory
+            Id: product.Id,
+            Price: product.Price,
+            Description: product.Description,
+            Name: product.Name,
+            Quantity: product.Quantity,
+            ProductCategory: product.ProductCategory
         );
 }

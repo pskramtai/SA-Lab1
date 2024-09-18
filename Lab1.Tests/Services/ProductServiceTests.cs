@@ -2,22 +2,34 @@
 using FluentAssertions;
 using Lab1.Models;
 using Lab1.Services;
+using Lab1.Services.Clients;
+using Lab1.Services.Contracts;
+using Moq;
 using Xunit;
 
 namespace Tests.Services;
 
 public class ProductServiceTests
     {
+        private readonly Mock<IProductApiClient> _productApiClientMock = new();
         private readonly Fixture _fixture = new();
 
-        private readonly ProductService _productService = new();
+        private readonly ProductService _productService;
+
+        public ProductServiceTests() => 
+            _productService = new ProductService(_productApiClientMock.Object);
 
         [Fact]
-        public void GetList_EmptyList_ReturnsEmptyCollection()
+        public async Task GetListAsync_EmptyList_ReturnsEmptyCollection()
         {
+            // Arrange
+
+            var products = new List<ProductDto>();
+            _productApiClientMock.Setup(x => x.GetProductsAsync()).ReturnsAsync(products);
+            
             // Act
             
-            var result = _productService.GetList();
+            var result = await _productService.GetListAsync();
 
             // Assert
             
@@ -25,15 +37,16 @@ public class ProductServiceTests
         }
 
         [Fact]
-        public void Get_ExistingProduct_ReturnsProduct()
+        public async Task GetAsync_ExistingProduct_ReturnsProduct()
         {
             // Arrange
-            var product = _fixture.Create<Product>();
-            _productService.Add(product);
+            var product = _fixture.Create<ProductDto>();
+
+            _productApiClientMock.Setup(x => x.GetProductAsync(product.Id)).ReturnsAsync(product);
 
             // Act
             
-            var result = _productService.Get(product.Id);
+            var result = await _productService.GetAsync(product.Id);
 
             // Assert
             
@@ -41,11 +54,15 @@ public class ProductServiceTests
         }
 
         [Fact]
-        public void Get_NonExistingProduct_ReturnsNull()
+        public async Task GetAsync_NonExistingProduct_ReturnsNull()
         {
+            // Arrange
+            
+            _productApiClientMock.Setup(x => x.GetProductAsync(It.IsAny<Guid>()))!.ReturnsAsync((ProductDto?)null);
+            
             // Act
             
-            var result = _productService.Get(Guid.NewGuid());
+            var result = await _productService.GetAsync(Guid.NewGuid());
 
             // Assert
             
@@ -53,7 +70,59 @@ public class ProductServiceTests
         }
 
         [Fact]
-        public void Add_ValidProduct_IncreasesProductListSize()
+        public async Task AddAsync_AddsProduct()
+        {
+            // Arrange
+            
+            var product = _fixture.Create<ProductDto>();
+            
+            _productApiClientMock.Setup(x => x.CreateProductAsync(product))!.ReturnsAsync(product);
+            
+            // Act
+            
+            var result = await _productService.AddAsync(product);
+            
+            // Assert
+
+            result.Should().BeEquivalentTo(product);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_ExistingProduct_UpdatesProduct()
+        {
+            // Arrange
+            
+            var product = _fixture.Create<ProductDto>();
+            
+            _productApiClientMock.Setup(x => x.UpdateProductAsync(product.Id, product))!.ReturnsAsync(product);
+            
+            // Act
+            
+            var result = await _productService.UpdateAsync(product);
+            
+            // Assert
+
+            result.Should().BeEquivalentTo(product);
+        }
+
+        [Fact]
+        public async Task Update_NonExistingProduct_ReturnsNull()
+        {
+            // Arrange
+            
+            _productApiClientMock.Setup(x => x.UpdateProductAsync(It.IsAny<Guid>(),It.IsAny<ProductDto>()))!.ReturnsAsync((ProductDto?) null);
+
+            // Act
+            
+            var result = await _productService.UpdateAsync(_fixture.Create<ProductDto>());
+            
+            // Assert
+            
+            result.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task DeleteAsync_ExistingProduct_ApiClientDeleteProductAsyncCalled()
         {
             // Arrange
             
@@ -61,96 +130,10 @@ public class ProductServiceTests
             
             // Act
             
-            _productService.Add(product);
-            
-            var result = _productService.GetList();
+            await _productService.DeleteAsync(product.Id);
 
             // Assert
             
-            result.Should().Contain(product);
-        }
-
-        [Fact]
-        public void Update_ExistingProduct_UpdatesProduct()
-        {
-            // Arrange
-            
-            var productId = Guid.NewGuid();
-            var initialProduct = _fixture
-                .Build<Product>()
-                .With(x => x.Id, productId)
-                .Create();
-            
-            _productService.Add(initialProduct);
-
-            var updatedProduct = _fixture
-                .Build<Product>()
-                .With(x => x.Id, productId)
-                .Create();
-
-            // Act
-            
-            _productService.Update(updatedProduct);
-            
-            var result = _productService.Get(productId);
-
-            // Assert
-            
-            result.Should().BeEquivalentTo(updatedProduct);
-        }
-
-        [Fact]
-        public void Update_NonExistingProduct_DoesNotChangeList()
-        {
-            // Arrange
-            
-            var initialProduct = _fixture.Create<Product>();
-            
-            _productService.Add(initialProduct);
-
-            var nonExistingProduct = _fixture.Create<Product>();
-
-            // Act
-            
-            _productService.Update(nonExistingProduct);
-            
-            var result = _productService.GetList();
-
-            // Assert
-            result.Should().ContainSingle();
-            result.Should().Contain(initialProduct);
-        }
-
-        [Fact]
-        public void Remove_ExistingProduct_RemovesProduct()
-        {
-            // Arrange
-            var product = _fixture.Create<Product>();
-            _productService.Add(product);
-
-            // Act
-            _productService.Remove(product.Id);
-            var result = _productService.GetList();
-
-            // Assert
-            result.Should().BeEmpty();
-        }
-
-        [Fact]
-        public void Remove_NonExistingProduct_DoesNothing()
-        {
-            // Arrange
-            
-            var nonExistingProductId = Guid.NewGuid();
-
-            // Act
-            
-            _productService.Remove(nonExistingProductId);
-            
-            var result = _productService.GetList();
-
-            // Assert
-            
-            result.Should().BeEmpty();
+            _productApiClientMock.Verify(x => x.DeleteProductAsync(product.Id), Times.Once);
         }
     }

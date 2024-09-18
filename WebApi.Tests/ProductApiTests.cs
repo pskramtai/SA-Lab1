@@ -141,6 +141,7 @@ public class ProductsApiTests : IClassFixture<WebApplicationFactory<Program>>
         var productRequest = _fixture
             .Build<ProductRequest>()
             .With(x => x.Name, "test")
+            .With(x => x.Description, "test")
             .With(x => x.Price, 1)
             .With(x => x.Quantity, 1)
             .With(x => x.ProductCategory, ProductCategory.Other)
@@ -152,6 +153,7 @@ public class ProductsApiTests : IClassFixture<WebApplicationFactory<Program>>
             .Build<ProductDto>()
             .With(x => x.Id, (Guid?) null)
             .With(x => x.Name, productRequest.Name)
+            .With(x => x.Description, productRequest.Description)
             .With(x => x.Price, productRequest.Price)
             .With(x => x.Quantity, productRequest.Quantity)
             .With(x => x.ProductCategory, productRequest.ProductCategory)
@@ -183,6 +185,26 @@ public class ProductsApiTests : IClassFixture<WebApplicationFactory<Program>>
         var productRequest = _fixture
             .Build<ProductRequest>()
             .With(x => x.Name, "12")
+            .Create();
+
+        // Act
+        
+        var response = await _sut.PostAsJsonAsync("/products", productRequest);
+
+        // Assert
+        
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        _productServiceMock.Verify(x => x.CreateProduct(It.IsAny<ProductDto>()), Times.Never);
+    }
+    
+    [Fact]
+    public async Task CreateProduct_WhenDescriptionInvalid_ShouldReturnBadRequest()
+    {
+        // Arrange
+        
+        var productRequest = _fixture
+            .Build<ProductRequest>()
+            .With(x => x.Description, "12")
             .Create();
 
         // Act
@@ -267,6 +289,7 @@ public class ProductsApiTests : IClassFixture<WebApplicationFactory<Program>>
         var productRequest = _fixture
             .Build<ProductRequest>()
             .With(x => x.Name, "test")
+            .With(x => x.Description, "test")
             .With(x => x.Price, 1)
             .With(x => x.Quantity, 1)
             .With(x => x.ProductCategory, ProductCategory.Other)
@@ -283,6 +306,7 @@ public class ProductsApiTests : IClassFixture<WebApplicationFactory<Program>>
             .Build<ProductDto>()
             .With(x => x.Id, productId)
             .With(x => x.Name, productRequest.Name)
+            .With(x => x.Description, productRequest.Description)
             .With(x => x.Price, productRequest.Price)
             .With(x => x.Quantity, productRequest.Quantity)
             .With(x => x.ProductCategory, productRequest.ProductCategory)
@@ -309,7 +333,14 @@ public class ProductsApiTests : IClassFixture<WebApplicationFactory<Program>>
     {
         // Arrange
 
-        var productRequest = _fixture.Create<ProductRequest>();
+        var productRequest = _fixture
+            .Build<ProductRequest>()
+            .With(x => x.Name, "test")
+            .With(x => x.Description, "test")
+            .With(x => x.Price, 1)
+            .With(x => x.Quantity, 1)
+            .With(x => x.ProductCategory, ProductCategory.Other)
+            .Create();
         
         var productId = Guid.NewGuid();
         
@@ -333,6 +364,28 @@ public class ProductsApiTests : IClassFixture<WebApplicationFactory<Program>>
         var productRequest = _fixture
             .Build<ProductRequest>()
             .With(x => x.Name, "12")
+            .Create();
+        
+        var productId = Guid.NewGuid();
+        
+        // Act
+        
+        var response = await _sut.PutAsJsonAsync($"/products/{productId}", productRequest);
+
+        // Assert
+        
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        _productServiceMock.Verify(x => x.UpdateProduct(It.IsAny<ProductDto>()), Times.Never);
+    }
+    
+    [Fact]
+    public async Task UpdateProduct_WhenDescriptionInvalid_ShouldReturnBadRequest()
+    {
+        // Arrange
+        
+        var productRequest = _fixture
+            .Build<ProductRequest>()
+            .With(x => x.Description, "12")
             .Create();
         
         var productId = Guid.NewGuid();

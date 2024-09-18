@@ -1,6 +1,7 @@
 using AutoFixture;
 using FluentAssertions;
 using Lab1.Controllers;
+using Lab1.Extensions;
 using Lab1.Models;
 using Lab1.Services.Contracts;
 using Microsoft.AspNetCore.Mvc;
@@ -20,19 +21,19 @@ public class ProductControllerTests
         _productsController = new ProductController(_productServiceMock.Object);
 
     [Fact]
-    public void Index_ReturnsAllProducts()
+    public async Task Index_ReturnsAllProducts()
     {
         // Arrange
         
         var products = _fixture
-            .CreateMany<Product>()
+            .CreateMany<ProductDto>()
             .ToList();
 
-        _productServiceMock.Setup(x => x.GetList()).Returns(products);
+        _productServiceMock.Setup(x => x.GetListAsync()).ReturnsAsync(products);
         
         // Act
         
-        var result = _productsController.Index() as ViewResult;
+        var result = await _productsController.Index() as ViewResult;
         
         // Assert
 
@@ -40,17 +41,19 @@ public class ProductControllerTests
     }
     
     [Fact]
-    public void Edit_ProductExists_ReturnsViewResultWithProduct()
+    public async Task Edit_ProductExists_ReturnsViewResultWithProduct()
     {
         // Arrange
         
         var product = _fixture.Create<Product>();
+        var productDto = product.ToProductDto();
 
-        _productServiceMock.Setup(x => x.Get(product.Id)).Returns(product);
+        _productServiceMock.Setup(x => x.GetAsync(product.Id)).ReturnsAsync(productDto);
+        _productServiceMock.Setup(x => x.UpdateAsync(productDto)).ReturnsAsync(productDto);
         
         // Act
         
-        var result = _productsController.Edit(product.Id) as ViewResult;
+        var result = await _productsController.Edit(product.Id) as ViewResult;
         
         // Assert
 
@@ -58,17 +61,17 @@ public class ProductControllerTests
     }
     
     [Fact]
-    public void Edit_ProductDoesNotExist_ReturnsNotFound()
+    public async Task Edit_ProductDoesNotExist_ReturnsNotFound()
     {
         // Arrange
         
         var guid = _fixture.Create<Guid>();
 
-        _productServiceMock.Setup(x => x.Get(guid)).Returns((Product?) null);
+        _productServiceMock.Setup(x => x.GetAsync(guid)).ReturnsAsync((ProductDto?) null);
         
         // Act
         
-        var result = _productsController.Edit(guid);
+        var result = await _productsController.Edit(guid);
         
         // Assert
 
@@ -76,33 +79,108 @@ public class ProductControllerTests
     }
     
     [Fact]
-    public void Add_InvalidProductModel_ReturnsValidationError()
+    public async Task Add_InvalidProductName_ReturnsValidationError()
     {
         // Arrange
 
-        _productsController.ModelState.AddModelError("Name", "Required");
+        _productsController.ModelState.AddModelError(nameof(Product.Name), "Required");
 
         var product = _fixture.Create<Product>();
         
         // Act
 
-        _productsController.Add(product);
+        await _productsController.Add(product);
 
         // Assert
 
-        _productsController.ModelState.Should().ContainKey("Name");
+        _productsController.ModelState.Should().ContainKey(nameof(Product.Name));
     }
     
     [Fact]
-    public void Add_ValidProductModel_RedirectsToEdit()
+    public async Task Add_InvalidProductDescription_ReturnsValidationError()
     {
         // Arrange
-        
+
+        _productsController.ModelState.AddModelError(nameof(Product.Description), "Required");
+
         var product = _fixture.Create<Product>();
         
         // Act
 
-        var result = _productsController.Add(product) as RedirectToActionResult;
+        await _productsController.Add(product);
+
+        // Assert
+
+        _productsController.ModelState.Should().ContainKey(nameof(Product.Description));
+    }
+    
+    [Fact]
+    public async Task Add_InvalidProductPrice_ReturnsValidationError()
+    {
+        // Arrange
+
+        _productsController.ModelState.AddModelError(nameof(Product.Price), "Required");
+
+        var product = _fixture.Create<Product>();
+        
+        // Act
+
+        await _productsController.Add(product);
+
+        // Assert
+
+        _productsController.ModelState.Should().ContainKey(nameof(Product.Price));
+    }
+    
+    [Fact]
+    public async Task Add_InvalidProductQuantity_ReturnsValidationError()
+    {
+        // Arrange
+
+        _productsController.ModelState.AddModelError(nameof(Product.Quantity), "Required");
+
+        var product = _fixture.Create<Product>();
+        
+        // Act
+
+        await _productsController.Add(product);
+
+        // Assert
+
+        _productsController.ModelState.Should().ContainKey(nameof(Product.Quantity));
+    }
+    
+    [Fact]
+    public async Task Add_InvalidProductCategory_ReturnsValidationError()
+    {
+        // Arrange
+
+        _productsController.ModelState.AddModelError(nameof(Product.ProductCategory), "Required");
+
+        var product = _fixture.Create<Product>();
+        
+        // Act
+
+        await _productsController.Add(product);
+
+        // Assert
+
+        _productsController.ModelState.Should().ContainKey(nameof(Product.ProductCategory));
+    }
+    
+    [Fact]
+    public async Task Add_ValidProductModel_RedirectsToEdit()
+    {
+        // Arrange
+        
+        var product = _fixture.Create<Product>();
+        var productDto = product.ToProductDto();
+
+        _productServiceMock.Setup(x => x.AddAsync(productDto)).ReturnsAsync(productDto);
+        
+        // Act
+
+        var result = await _productsController.Add(product) as RedirectToActionResult;
         
         // Assert
 
@@ -110,33 +188,19 @@ public class ProductControllerTests
     }
     
     [Fact]
-    public void Update_InvalidProductModel_ReturnsValidationError()
-    {
-        // Arrange
-
-        _productsController.ModelState.AddModelError("Name", "Required");
-
-        var product = _fixture.Create<Product>();
-        
-        // Act
-
-        _productsController.Update(product);
-
-        // Assert
-
-        _productsController.ModelState.Should().ContainKey("Name");
-    }
-    
-    [Fact]
-    public void Update_ValidProductModel_RedirectsToEdit()
+    public async Task Update_ValidProductModel_RedirectsToEdit()
     {
         // Arrange
         
         var product = _fixture.Create<Product>();
+        var productDto = product.ToProductDto();
+
+        _productServiceMock.Setup(x => x.UpdateAsync(productDto)).ReturnsAsync(productDto);
+        
         
         // Act
 
-        var result = _productsController.Add(product) as RedirectToActionResult;
+        var result = await _productsController.Update(product) as RedirectToActionResult;
         
         // Assert
 
@@ -144,14 +208,14 @@ public class ProductControllerTests
     }
     
     [Fact]
-    public void Remove_ValidId_RedirectsToIndex()
+    public async Task Remove_ValidId_RedirectsToIndex()
     {
         // Arrange
         var productId = Guid.NewGuid();
-        _productServiceMock.Setup(service => service.Remove(productId));
+        _productServiceMock.Setup(service => service.DeleteAsync(productId));
 
         // Act
-        var result = _productsController.Remove(productId) as RedirectToActionResult;
+        var result = await _productsController.Remove(productId) as RedirectToActionResult;
 
         // Assert
         
